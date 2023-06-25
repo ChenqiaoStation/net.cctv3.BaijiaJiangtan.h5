@@ -1,10 +1,10 @@
-import {EllipsisOutlined, PlusOutlined} from '@ant-design/icons';
-import type {ActionType, ProColumns} from '@ant-design/pro-components';
-import {ProTable, TableDropdown} from '@ant-design/pro-components';
-import {Button, Dropdown, Image, Switch} from 'antd';
-import {CSSProperties, useRef, useState} from 'react';
-import {Host4Springboot, useHttpGet} from '../../x';
-import EditModal from './EditModal';
+import { PlusOutlined } from "@ant-design/icons";
+import type { ActionType, ProColumns } from "@ant-design/pro-components";
+import { ProTable } from "@ant-design/pro-components";
+import { Button, Image, Popconfirm, Switch, message } from "antd";
+import { CSSProperties, useRef, useState } from "react";
+import { Host4Springboot, useHttpGet } from "../../x";
+import EditModal from "./EditModal";
 
 type TeacherItem = {
   id: string;
@@ -23,29 +23,29 @@ const TeacherPage = () => {
   const [item, setItem] = useState<any>(Object.create(null));
   const columns: ProColumns<TeacherItem>[] = [
     {
-      title: 'ID',
-      dataIndex: 'id',
+      title: "ID",
+      dataIndex: "id",
       width: 80,
       ellipsis: true,
     },
     {
-      title: '头像',
+      title: "头像",
       width: 70,
-      dataIndex: 'capture',
+      dataIndex: "capture",
       ellipsis: true,
       renderFormItem: () => null,
       render: (_, record) => (
         <Image
           src={record.avatar}
-          style={{width: 50, height: 50, borderRadius: 25}}
+          style={{ width: 50, height: 50, borderRadius: 25 }}
           fallback="https://net-cctv3.oss-cn-qingdao.aliyuncs.com/net.cctv3.BaijiaJiangtan/BaiduErrors.jpg"
         />
       ),
     },
     {
-      title: '姓名',
+      title: "姓名",
       width: 60,
-      dataIndex: 'name',
+      dataIndex: "name",
       ellipsis: true,
       // formItemProps: {
       //   rules: [
@@ -58,38 +58,38 @@ const TeacherPage = () => {
       render: (_, record) => <div>{record.name}</div>,
     },
     {
-      title: '职业',
+      title: "职业",
       width: 150,
-      dataIndex: 'title',
+      dataIndex: "title",
       ellipsis: true,
       renderFormItem: () => null,
     },
     {
-      title: '介绍',
+      title: "介绍",
       width: 150,
-      dataIndex: 'message',
+      dataIndex: "message",
       ellipsis: true,
       renderFormItem: () => null,
     },
     {
       width: 80,
-      title: '创建时间',
-      dataIndex: 'createTime',
+      title: "创建时间",
+      dataIndex: "createTime",
       ellipsis: true,
       renderFormItem: () => null,
     },
     {
       width: 80,
-      title: '修改时间',
-      dataIndex: 'updateTime',
+      title: "修改时间",
+      dataIndex: "updateTime",
       ellipsis: true,
       renderFormItem: () => null,
     },
     {
       width: 60,
       disable: true,
-      title: '状态',
-      dataIndex: 'status',
+      title: "状态",
+      dataIndex: "status",
       ellipsis: true,
       renderFormItem: () => null,
       render: (_, record) => (
@@ -97,8 +97,8 @@ const TeacherPage = () => {
       ),
     },
     {
-      title: '操作',
-      fixed: 'right',
+      title: "操作",
+      fixed: "right",
       width: 60,
       renderFormItem: () => null,
       render: (text, record, _, action) => [
@@ -107,15 +107,34 @@ const TeacherPage = () => {
             key="editable"
             onClick={() => {
               // action?.startEditable?.(record.id);
-              setItem({...record});
+              setItem({ ...record });
               setIsShowEditModal(true);
-            }}>
+            }}
+          >
             编辑
           </a>
-          <div style={{width: 32}} />
-          <a key="view" onClick={() => {}}>
-            删除
-          </a>
+          <div style={{ width: 32 }} />
+          <Popconfirm
+            title="确认删除？"
+            description={`${record.title}`}
+            onConfirm={async () => {
+              let result = await useHttpGet(
+                `${Host4Springboot}/deleteTeacher.do`,
+                {
+                  id: record.id,
+                }
+              );
+              if (result.success) {
+                actionRef.current.reload();
+                message.success("删除成功 ~");
+              } else {
+                message.error("删除失败 ~");
+              }
+            }}
+            onOpenChange={() => {}}
+          >
+            <a key="view">删除</a>
+          </Popconfirm>
         </div>,
 
         // <TableDropdown
@@ -133,7 +152,7 @@ const TeacherPage = () => {
   return (
     <>
       <ProTable<TeacherItem>
-        scroll={{x: 1366}}
+        scroll={{ x: 1366 }}
         columns={columns}
         actionRef={actionRef}
         cardBordered
@@ -146,12 +165,12 @@ const TeacherPage = () => {
           // persistenceKey: 'pro-table-singe-demos',
           // persistenceType: 'localStorage',
           onChange(value) {
-            console.log('value: ', value);
+            console.log("value: ", value);
           },
         }}
         rowKey="id"
         search={{
-          labelWidth: 'auto',
+          labelWidth: "auto",
         }}
         options={{
           setting: {
@@ -161,7 +180,7 @@ const TeacherPage = () => {
         form={{
           // 由于配置了 transform，提交的参与与定义的不同这里需要转化一下
           syncToUrl: (values, type) => {
-            if (type === 'get') {
+            if (type === "get") {
               return {
                 ...values,
                 created_at: [values.startTime, values.endTime],
@@ -172,7 +191,7 @@ const TeacherPage = () => {
         }}
         pagination={{
           pageSize: 5,
-          onChange: page => console.log(page),
+          onChange: (page) => console.log(page),
         }}
         dateFormatter="string"
         headerTitle="教师管理"
@@ -185,7 +204,8 @@ const TeacherPage = () => {
               setItem(Object.create(null));
               setIsShowEditModal(true);
             }}
-            type="primary">
+            type="primary"
+          >
             新建
           </Button>,
         ]}
@@ -205,12 +225,12 @@ const TeacherPage = () => {
 };
 
 const viewHeader: CSSProperties = {
-  position: 'sticky',
+  position: "sticky",
   top: 0,
   zIndex: 1,
-  width: '100%',
-  display: 'flex',
-  alignItems: 'center',
+  width: "100%",
+  display: "flex",
+  alignItems: "center",
 };
 
 export default TeacherPage;

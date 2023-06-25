@@ -1,4 +1,4 @@
-import CryptoJS from 'crypto-js';
+import CryptoJS from "crypto-js";
 
 // 公司: 192.168.110.131
 // 宿舍: 192.168.0.109
@@ -7,17 +7,17 @@ import CryptoJS from 'crypto-js';
 // 服务器 HTTPS: api.cctv3.net/api
 
 const RUNTIME = 0; // 0: 测试环境 1: 正式环境
-const Host4NodeJS = 'https://api.cctv3.net/api';
-const Host4Springboot = ['http://192.168.110.165:8888', ''][RUNTIME];
+const Host4NodeJS = "https://api.cctv3.net/api";
+const Host4Springboot = ["http://localhost:8888", ""][RUNTIME];
 
 /** 随机颜色 */
 const useRandomColor = () => {
-  return `#${Math.random().toString(16).replace(/0\./, '').substring(0, 6)}`;
+  return `#${Math.random().toString(16).replace(/0\./, "").substring(0, 6)}`;
 };
 
 /** uuid */
 const useUUID = () => {
-  return `${Math.random().toString(36).replace(/0\./, '').substring(0, 8)}`;
+  return `${Math.random().toString(36).replace(/0\./, "").substring(0, 8)}`;
 };
 
 /**
@@ -41,11 +41,11 @@ const aesEncrypt = (data: string, key?: string) => {
   // }).ciphertext.toString(CryptoJS.enc.Base64);
   return CryptoJS.AES.encrypt(
     data,
-    CryptoJS.enc.Utf8.parse(key || 'i@BaijiaJiangtan'),
+    CryptoJS.enc.Utf8.parse(key || "i@BaijiaJiangtan"),
     {
       mode: CryptoJS.mode.ECB,
       padding: CryptoJS.pad.Pkcs7,
-    },
+    }
   ).ciphertext.toString(CryptoJS.enc.Base64);
 };
 
@@ -59,11 +59,11 @@ const aesDecrypt = (encrypted: string, key?: string) => {
   // 返回的是一个解密后的对象
   const decipher = CryptoJS.AES.decrypt(
     encrypted,
-    CryptoJS.enc.Utf8.parse(key || 'i@BaijiaJiangtan'),
+    CryptoJS.enc.Utf8.parse(key || "i@BaijiaJiangtan"),
     {
       mode: CryptoJS.mode.ECB,
       padding: CryptoJS.pad.Pkcs7,
-    },
+    }
   );
   // 将解密对象转换成 UTF8 的字符串
   return CryptoJS.enc.Utf8.stringify(decipher);
@@ -89,14 +89,14 @@ const isJSON = (s: string) => {
  * @returns
  */
 const useHeaders = (isMultiPart?: boolean) => {
-  let r = Math.random().toString(36).replace(/0\./, '').substring(0, 8);
-  let s = CryptoJS.MD5(r + 'i@BaijiaJiangtan').toString();
+  let r = Math.random().toString(36).replace(/0\./, "").substring(0, 8);
+  let s = CryptoJS.MD5(r + "i@BaijiaJiangtan").toString();
   return {
     r,
     s,
     ...{
-      'Content-Type': `application/${
-        isMultiPart ? 'x-www-form-urlencoded' : 'json'
+      "Content-Type": `application/${
+        isMultiPart ? "x-www-form-urlencoded" : "json"
       }`,
     },
   };
@@ -107,11 +107,16 @@ const useHeaders = (isMultiPart?: boolean) => {
  * @param {*} url
  */
 const useHttpGet = async (url: string, params?: any) => {
-  const paramsString = Object.keys(params)
-    .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
-    .join('&');
-  let request = await fetch(params ? `${url}?${paramsString}` : url, {
-    method: 'GET',
+  const paramsString = (_params) => {
+    return Object.keys(_params)
+      .map(
+        (key) =>
+          `${encodeURIComponent(key)}=${encodeURIComponent(_params[key])}`
+      )
+      .join("&");
+  };
+  let request = await fetch(params ? `${url}?${paramsString(params)}` : url, {
+    method: "GET",
     headers: useHeaders(),
   });
   let text = await request.text();
@@ -126,7 +131,7 @@ const useHttpGet = async (url: string, params?: any) => {
  */
 const useHttpPost = async (url: string, body: string) => {
   let request = await fetch(url, {
-    method: 'POST',
+    method: "POST",
     headers: useHeaders(),
     body,
   });
@@ -142,9 +147,9 @@ const useDurationFormatter = (duration: number) => {
   const h = Math.floor(duration / 3600);
   const m = Math.floor((duration % 3600) / 60);
   const s = Math.floor(duration % 60);
-  return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s
+  return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s
     .toString()
-    .padStart(2, '0')}`;
+    .padStart(2, "0")}`;
 };
 
 export {

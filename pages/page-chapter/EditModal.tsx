@@ -100,12 +100,6 @@ const EditModal: React.FC<MyProps> = props => {
             label="所属系列"
             placeholder="请输入系列编号"
           />
-          <ProFormText
-            width={'md'}
-            name="teacherId"
-            label="演讲教师"
-            placeholder="请输入教师编号"
-          />
         </ProForm.Group>
         <ProForm.Group>
           <ProFormTextArea

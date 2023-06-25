@@ -1,15 +1,23 @@
-import {PlusOutlined} from '@ant-design/icons';
-import type {ActionType, ProColumns} from '@ant-design/pro-components';
-import {ProTable} from '@ant-design/pro-components';
-import {Button, Card, Image, Segmented, Tabs, Tag} from 'antd';
-import {CSSProperties, useEffect, useRef, useState} from 'react';
-import {Host4Springboot, useDurationFormatter, useHttpGet} from '../../x';
-import EditModal from './EditModal';
+import { PlusOutlined } from "@ant-design/icons";
+import type { ActionType, ProColumns } from "@ant-design/pro-components";
+import { ProTable } from "@ant-design/pro-components";
+import {
+  Button,
+  Card,
+  Image,
+  Popconfirm,
+  Segmented,
+  Tabs,
+  Tag,
+  message,
+} from "antd";
+import { CSSProperties, useEffect, useRef, useState } from "react";
+import { Host4Springboot, useDurationFormatter, useHttpGet } from "../../x";
+import EditModal from "./EditModal";
 
 type ChapterItem = {
   id: string;
   seriesId?: string;
-  teacherId?: string;
   cctvId?: string;
   title?: string;
   capture?: string;
@@ -31,68 +39,61 @@ const ChapterPage = () => {
   const [isShowEditModal, setIsShowEditModal] = useState(false);
   const [item, setItem] = useState<any>(Object.create(null));
   const [datas, setDatas] = useState<ChapterItem[]>([]);
-  const [status, setStatus] = useState('0');
+  const [status, setStatus] = useState("0");
   const [total, setTotal] = useState(0);
-  const STATUSES = ['原始数据', '完成编辑', '重复数据', '测试数据'];
+  const STATUSES = ["原始数据", "完成编辑", "重复数据", "测试数据"];
   const columns: ProColumns<ChapterItem>[] = [
     {
-      title: '封面',
+      title: "封面",
       width: 110,
-      dataIndex: 'capture',
+      dataIndex: "capture",
       ellipsis: true,
       renderFormItem: () => null,
       render: (_, record) => (
         <Image
           src={record.capture}
-          style={{width: 80, height: 45, borderRadius: 4}}
+          style={{ width: 80, height: 45, borderRadius: 4 }}
           fallback="https://net-cctv3.oss-cn-qingdao.aliyuncs.com/net.cctv3.BaijiaJiangtan/BaiduErrors.jpg"
         />
       ),
     },
     {
-      title: 'ID',
-      dataIndex: 'id',
+      title: "ID",
+      dataIndex: "id",
       width: 80,
       ellipsis: true,
     },
     {
-      title: '系列',
-      dataIndex: 'seriesId',
-      width: 80,
-      ellipsis: true,
-      renderFormItem: () => null,
-    },
-    {
-      title: '讲师',
-      dataIndex: 'teacherId',
+      title: "系列",
+      dataIndex: "seriesId",
       width: 80,
       ellipsis: true,
       renderFormItem: () => null,
     },
     {
-      title: 'CCTV',
-      dataIndex: 'cctvId',
+      title: "CCTV",
+      dataIndex: "cctvId",
       width: 80,
       ellipsis: true,
       renderFormItem: () => null,
     },
     {
-      title: '标题',
+      title: "标题",
       width: 150,
-      dataIndex: 'title',
+      dataIndex: "title",
       ellipsis: true,
     },
     {
-      title: '介绍',
+      title: "介绍",
       width: 150,
-      dataIndex: 'message',
+      dataIndex: "message",
       ellipsis: true,
       renderFormItem: () => null,
     },
     {
       width: 60,
-      title: 'CCTV链接',
-      dataIndex: 'cctvWeb',
+      title: "CCTV链接",
+      dataIndex: "cctvWeb",
       ellipsis: true,
       renderFormItem: () => null,
       render: (_, record) => (
@@ -103,8 +104,8 @@ const ChapterPage = () => {
     },
     {
       width: 60,
-      title: 'Mp3',
-      dataIndex: 'cctvMp3',
+      title: "Mp3",
+      dataIndex: "cctvMp3",
       ellipsis: true,
       renderFormItem: () => null,
       render: (_, record) => (
@@ -114,39 +115,39 @@ const ChapterPage = () => {
       ),
     },
     {
-      title: '时长',
+      title: "时长",
       width: 60,
-      dataIndex: 'duration',
+      dataIndex: "duration",
       ellipsis: true,
       renderFormItem: () => null,
       render: (_, record) => <div>{useDurationFormatter(record.duration)}</div>,
     },
     {
       width: 90,
-      title: '创建时间',
-      dataIndex: 'createTime',
+      title: "创建时间",
+      dataIndex: "createTime",
       ellipsis: true,
       renderFormItem: () => null,
     },
     {
       width: 90,
-      title: '修改时间',
-      dataIndex: 'updateTime',
+      title: "修改时间",
+      dataIndex: "updateTime",
       ellipsis: true,
       renderFormItem: () => null,
     },
     {
       width: 80,
       disable: true,
-      title: '状态',
-      dataIndex: 'status',
+      title: "状态",
+      dataIndex: "status",
       ellipsis: true,
       renderFormItem: () => null,
       render: (_, record) => <div>{STATUSES[record.status]}</div>,
     },
     {
-      title: '操作',
-      fixed: 'right',
+      title: "操作",
+      fixed: "right",
       width: 60,
       renderFormItem: () => null,
       render: (text, record, _, action) => [
@@ -155,17 +156,35 @@ const ChapterPage = () => {
             key="editable"
             onClick={() => {
               // action?.startEditable?.(record.id);
-              setItem({...record});
+              setItem({ ...record });
               setIsShowEditModal(true);
-            }}>
+            }}
+          >
             编辑
           </a>
-          <div style={{width: 32}} />
-          <a key="view" onClick={() => {}}>
-            删除
-          </a>
+          <div style={{ width: 32 }} />
+          <Popconfirm
+            title="确认删除？"
+            description={`${record.title}`}
+            onConfirm={async () => {
+              let result = await useHttpGet(
+                `${Host4Springboot}/deleteChapter.do`,
+                {
+                  id: record.id,
+                }
+              );
+              if (result.success) {
+                actionRef.current.reload();
+                message.success("删除成功 ~");
+              } else {
+                message.error("删除失败 ~");
+              }
+            }}
+            onOpenChange={() => console.log("open change")}
+          >
+            <a key="view">删除</a>
+          </Popconfirm>
         </div>,
-
         // <TableDropdown
         //   key="actionGroup"
         //   onSelect={() => action?.reload()}
@@ -194,18 +213,18 @@ const ChapterPage = () => {
               children: null,
             };
           })}
-          onChange={value => setStatus(`${value}`)}
+          onChange={(value) => setStatus(`${value}`)}
         />
       </Card>
       <ProTable<ChapterItem>
         // dataSource={datas}
-        scroll={{x: 1366}}
+        scroll={{ x: 1366 }}
         columns={columns}
         actionRef={actionRef}
         cardBordered
         request={async (params = {}, sort, filter) => {
           let result = await useHttpGet(
-            `${Host4Springboot}/selectChaptersByStatus.do?status=${status}`,
+            `${Host4Springboot}/selectChaptersByStatus.do?status=${status}`
           );
           setTotal(result.total);
           return result;
@@ -215,12 +234,12 @@ const ChapterPage = () => {
           // persistenceKey: 'pro-table-singe-demos',
           // persistenceType: 'localStorage',
           onChange(value) {
-            console.log('value: ', value);
+            console.log("value: ", value);
           },
         }}
         rowKey="id"
         search={{
-          labelWidth: 'auto',
+          labelWidth: "auto",
         }}
         options={{
           setting: {
@@ -230,7 +249,7 @@ const ChapterPage = () => {
         form={{
           // 由于配置了 transform，提交的参与与定义的不同这里需要转化一下
           syncToUrl: (values, type) => {
-            if (type === 'get') {
+            if (type === "get") {
               return {
                 ...values,
                 created_at: [values.startTime, values.endTime],
@@ -241,7 +260,7 @@ const ChapterPage = () => {
         }}
         pagination={{
           pageSize: 5,
-          onChange: page => console.log(page),
+          onChange: (page) => console.log(page),
         }}
         dateFormatter="string"
         headerTitle="章节管理"
@@ -254,7 +273,8 @@ const ChapterPage = () => {
               setItem(Object.create(null));
               setIsShowEditModal(true);
             }}
-            type="primary">
+            type="primary"
+          >
             新建
           </Button>,
         ]}
@@ -274,12 +294,12 @@ const ChapterPage = () => {
 };
 
 const viewHeader: CSSProperties = {
-  position: 'sticky',
+  position: "sticky",
   top: 0,
   zIndex: 1,
-  width: '100%',
-  display: 'flex',
-  alignItems: 'center',
+  width: "100%",
+  display: "flex",
+  alignItems: "center",
 };
 
 export default ChapterPage;
